@@ -10,6 +10,23 @@ class StockError(Exception):
 
 class Product:
     @staticmethod
+    def generate_sku(name):
+        letters = "".join(ch for ch in name.upper() if ch.isalpha())[:2] or "PR"
+        conn = get_connection()
+        try:
+            n = 1
+            while True:
+                candidate = f"{letters}-{n:02d}"
+                row = conn.execute(
+                    "SELECT 1 FROM products WHERE sku = ?", (candidate,)
+                ).fetchone()
+                if not row:
+                    return candidate
+                n += 1
+        finally:
+            conn.close()
+
+    @staticmethod
     def add(name, sku, price, stock=0, reorder_level=5):
         conn = get_connection()
         try:

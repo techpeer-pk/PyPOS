@@ -21,8 +21,13 @@ class ProductDialog(QDialog):
         self.stock_input = QLineEdit(str(product["stock"]) if product else "0")
         self.reorder_input = QLineEdit(str(product["reorder_level"]) if product else "5")
 
+        self.sku_manually_edited = False
         if product:
             self.sku_input.setEnabled(False)
+        else:
+            self.sku_input.setPlaceholderText("Auto-generated (or scan/type real barcode)")
+            self.sku_input.textEdited.connect(self._mark_sku_manual)
+            self.name_input.textChanged.connect(self._autofill_sku)
 
         layout.addRow("Name:", self.name_input)
         layout.addRow("SKU:", self.sku_input)
@@ -36,6 +41,18 @@ class ProductDialog(QDialog):
         buttons.accepted.connect(self.validate_and_accept)
         buttons.rejected.connect(self.reject)
         layout.addRow(buttons)
+
+    def _mark_sku_manual(self):
+        self.sku_manually_edited = True
+
+    def _autofill_sku(self, name):
+        if self.sku_manually_edited:
+            return
+        name = name.strip()
+        if not name:
+            self.sku_input.clear()
+            return
+        self.sku_input.setText(Product.generate_sku(name))
 
     def validate_and_accept(self):
         if not self.name_input.text().strip() or not self.sku_input.text().strip():

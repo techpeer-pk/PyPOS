@@ -1,9 +1,9 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit,
     QTableWidget, QTableWidgetItem, QComboBox, QMessageBox, QHeaderView,
-    QDialog, QTextEdit, QDialogButtonBox
+    QDialog, QTextEdit, QDialogButtonBox, QCompleter
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QStringListModel, QTimer
 from PyQt6.QtGui import QFont
 
 from models import Product, Invoice, StockError
@@ -28,12 +28,24 @@ class SalesScreen(QWidget):
         scan_row = QHBoxLayout()
         scan_row.addWidget(QLabel("Barcode/SKU:"))
         self.scan_input = QLineEdit()
+        self.scan_input.setPlaceholderText("Scan barcode, type SKU, or search by name...")
         self.scan_input.returnPressed.connect(self.scan_item)
         scan_btn = QPushButton("Scan")
         scan_btn.clicked.connect(self.scan_item)
         scan_row.addWidget(self.scan_input)
         scan_row.addWidget(scan_btn)
         layout.addLayout(scan_row)
+
+        self._completer_map = {}
+        self._completer_model = QStringListModel()
+        self.completer = QCompleter()
+        self.completer.setModel(self._completer_model)
+        self.completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self.completer.setFilterMode(Qt.MatchFlag.MatchContains)
+        self.completer.setCompletionMode(QCompleter.CompletionMode.UnfilteredPopupCompletion)
+        self.completer.activated.connect(self.on_suggestion_selected)
+        self.scan_input.setCompleter(self.completer)
+        self.scan_input.textEdited.connect(self.update_suggestions)
 
         self.table = QTableWidget(0, 4)
         self.table.setHorizontalHeaderLabels(["Item", "Qty", "Price Per", "Total"])
@@ -77,24 +89,68 @@ class SalesScreen(QWidget):
         self.cart = []
         self.render_cart()
         self.invoice_label.setText("Invoice #: -")
+        self.scan_input.clear()
+        self._completer_map = {}
+        self._completer_model.setStringList([])
         self.scan_input.setFocus()
 
-    def scan_item(self):
-        sku = normalize_code(self.scan_input.text())
-        self.scan_input.clear()
+    def update_suggestions(self, text):
+        text = text.strip()
+        if not text:
+            self._completer_map = {}
+            self._completer_model.setStringList([])
+            return
+        matches = Product.search(text)[:10]
+        self._completer_map = {
+            f"{p['name']} ({p['sku']}) - Rs.{p['price']:.0f}": p["sku"] for p in matches
+        }
+        self._completer_model.setStringList(list(self._completer_map.keys()))
+
+    def on_suggestion_selected(self, display_text):
+        sku = self._completer_map.pop(display_text, None)
+        # Qt re-fills the line edit with the completion text right after this
+        # slot runs, so defer the clear until that settles.
+        QTimer.singleShot(0, self.scan_input.clear)
         if not sku:
             return
         product = Product.get_by_sku(sku)
+        if product:
+            self._add_product_to_cart(product)
+
+    def scan_item(self):
+        raw_text = self.scan_input.text()
+        if raw_text in self._completer_map:
+            self.on_suggestion_selected(raw_text)
+            return
+
+        text = normalize_code(raw_text)
+        self.scan_input.clear()
+        if not text:
+            return
+        product = Product.get_by_sku(text)
+        if not product:
+            matches = Product.search(text)
+            if len(matches) == 1:
+                product = matches[0]
+            elif len(matches) > 1:
+                QMessageBox.information(
+                    self, "Multiple Matches",
+                    "Multiple products match. Please pick one from the dropdown list.",
+                )
+                return
         if not product:
             QMessageBox.warning(self, "Not Found", "Product not found. Add first.")
             return
+        self._add_product_to_cart(product)
+
+    def _add_product_to_cart(self, product):
         for item in self.cart:
-            if item["sku"] == sku:
+            if item["sku"] == product["sku"]:
                 item["qty"] += 1
                 self.render_cart()
                 return
         self.cart.append({
-            "sku": sku,
+            "sku": product["sku"],
             "name": product["name"],
             "qty": 1,
             "unit_price": product["price"],
