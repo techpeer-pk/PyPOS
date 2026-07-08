@@ -34,8 +34,9 @@ def format_receipt_text(shop_name, invoice):
     for item in invoice["items"]:
         name = item["name"][:18].ljust(18)
         qty = f"{item['quantity']}x"
-        line_total = item["quantity"] * item["unit_price"]
-        lines.append(f"{name} {qty:>4} {line_total:>10.0f}")
+        unit_price = item["unit_price"]
+        line_total = item["quantity"] * unit_price
+        lines.append(f"{name} {qty:>4} {unit_price:>6.0f} = {line_total:>7.0f}")
     lines += [
         "-" * RECEIPT_WIDTH,
         f"TOTAL:{invoice['total']:>{RECEIPT_WIDTH - 6}.0f} PKR",
