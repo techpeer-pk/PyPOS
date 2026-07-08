@@ -223,3 +223,27 @@ class Invoice:
             return [dict(r) for r in rows]
         finally:
             conn.close()
+
+    @staticmethod
+    def get_full(invoice_id):
+        """Returns the invoice with its items in the same shape as Invoice.create()."""
+        conn = get_connection()
+        try:
+            row = conn.execute(
+                "SELECT * FROM invoices WHERE id = ?", (invoice_id,)
+            ).fetchone()
+            if not row:
+                return None
+            invoice = dict(row)
+        finally:
+            conn.close()
+
+        invoice["items"] = [
+            {
+                "name": item["product_name"],
+                "quantity": item["quantity"],
+                "unit_price": item["unit_price"],
+            }
+            for item in Invoice.get_items(invoice_id)
+        ]
+        return invoice

@@ -91,6 +91,19 @@ class SettingsScreen(QWidget):
         backup_layout.addLayout(backup_btn_row)
         layout.addWidget(backup_box)
 
+        pin_box = QGroupBox("ADMIN PIN")
+        pin_form = QFormLayout(pin_box)
+        self.new_pin_input = QLineEdit()
+        self.new_pin_input.setEchoMode(QLineEdit.EchoMode.Password)
+        self.confirm_pin_input = QLineEdit()
+        self.confirm_pin_input.setEchoMode(QLineEdit.EchoMode.Password)
+        change_pin_btn = QPushButton("Change PIN")
+        change_pin_btn.clicked.connect(self.change_pin)
+        pin_form.addRow("New PIN:", self.new_pin_input)
+        pin_form.addRow("Confirm PIN:", self.confirm_pin_input)
+        pin_form.addRow(change_pin_btn)
+        layout.addWidget(pin_box)
+
         bottom_row = QHBoxLayout()
         save_btn = QPushButton("Save")
         back_btn = QPushButton("Back")
@@ -116,6 +129,9 @@ class SettingsScreen(QWidget):
             self.last_backup_label.setText(f"Last Backup: {last_backup.strftime('%Y-%m-%d %H:%M')}")
         else:
             self.last_backup_label.setText("Last Backup: Never")
+
+        self.new_pin_input.clear()
+        self.confirm_pin_input.clear()
 
     def save_settings(self):
         set_setting("shop_name", self.shop_name_input.text().strip())
@@ -155,6 +171,20 @@ class SettingsScreen(QWidget):
 
         scan_input.returnPressed.connect(on_scan)
         dialog.exec()
+
+    def change_pin(self):
+        new_pin = self.new_pin_input.text().strip()
+        confirm_pin = self.confirm_pin_input.text().strip()
+        if not new_pin.isdigit() or not (4 <= len(new_pin) <= 6):
+            QMessageBox.warning(self, "Invalid PIN", "PIN must be 4-6 digits.")
+            return
+        if new_pin != confirm_pin:
+            QMessageBox.warning(self, "Mismatch", "PIN and Confirm PIN do not match.")
+            return
+        set_setting("admin_pin", new_pin)
+        self.new_pin_input.clear()
+        self.confirm_pin_input.clear()
+        QMessageBox.information(self, "PIN Changed", "Admin PIN updated successfully.")
 
     def do_backup(self):
         path = backup_now()

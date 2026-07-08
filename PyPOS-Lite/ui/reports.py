@@ -1,11 +1,17 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QTableWidget, QTableWidgetItem, QDateEdit, QMessageBox, QHeaderView
+    QTableWidget, QTableWidgetItem, QDateEdit, QMessageBox, QHeaderView,
+    QDialog, QTextEdit, QDialogButtonBox
 )
 from PyQt6.QtCore import Qt, QDate
+from PyQt6.QtGui import QFont
 
 from models import Invoice
-from services.printer import print_report as send_report_to_printer
+from services.printer import (
+    print_report as send_report_to_printer,
+    print_receipt,
+    format_receipt_text,
+)
 from ui.settings import get_setting
 
 
@@ -39,6 +45,7 @@ class ReportsScreen(QWidget):
         self.table = QTableWidget(0, 5)
         self.table.setHorizontalHeaderLabels(["Invoice#", "Time", "Items", "Amount", "Status"])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.table.cellDoubleClicked.connect(self.show_invoice_detail)
         layout.addWidget(self.table)
 
         self.summary_label = QLabel()
@@ -89,3 +96,45 @@ class ReportsScreen(QWidget):
             )
         else:
             QMessageBox.information(self, "Printed", "Report sent to printer.")
+
+    def show_invoice_detail(self, row, _column):
+        invoice_id = self.table.item(row, 0).text()
+        invoice = Invoice.get_full(invoice_id)
+        if not invoice:
+            return
+
+        shop_name = get_setting("shop_name")
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f"Invoice {invoice['id']}")
+
+        layout = QVBoxLayout(dialog)
+        text = QTextEdit()
+        text.setReadOnly(True)
+        text.setFont(QFont("Courier New", 10))
+        text.setPlainText(format_receipt_text(shop_name, invoice))
+        layout.addWidget(text)
+
+        button_row = QHBoxLayout()
+        reprint_btn = QPushButton("Re-print")
+        reprint_btn.clicked.connect(lambda: self.reprint_invoice(invoice, shop_name))
+        button_row.addWidget(reprint_btn)
+        layout.addLayout(button_row)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
+        buttons.accepted.connect(dialog.accept)
+        layout.addWidget(buttons)
+
+        dialog.resize(380, 500)
+        dialog.exec()
+
+    def reprint_invoice(self, invoice, shop_name):
+        port = get_setting("printer_port", "COM4")
+        fallback_path = print_receipt(shop_name, invoice, port)
+        if fallback_path:
+            QMessageBox.information(
+                self, "Printer not responding",
+                f"Check cable. Receipt saved to:\n{fallback_path}",
+            )
+        else:
+            QMessageBox.information(self, "Printed", f"Invoice {invoice['id']} re-printed.")

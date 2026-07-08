@@ -1,12 +1,14 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit,
-    QTableWidget, QTableWidgetItem, QComboBox, QMessageBox, QHeaderView
+    QTableWidget, QTableWidgetItem, QComboBox, QMessageBox, QHeaderView,
+    QDialog, QTextEdit, QDialogButtonBox
 )
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont
 
 from models import Product, Invoice, StockError
 from services.scanner import normalize_code
-from services.printer import print_receipt
+from services.printer import print_receipt, format_receipt_text
 from ui.settings import get_setting
 
 
@@ -173,18 +175,33 @@ class SalesScreen(QWidget):
         port = get_setting("printer_port", "COM4")
         fallback_path = print_receipt(shop_name, invoice, port)
 
-        if fallback_path:
-            QMessageBox.information(
-                self, "Sale Complete",
-                f"Invoice {invoice['id']} completed.\nTotal: {invoice['total']:.0f} PKR\n\n"
-                f"Printer not responding. Check cable.\nReceipt saved to:\n{fallback_path}",
-            )
-        else:
-            QMessageBox.information(
-                self, "Sale Complete",
-                f"Invoice {invoice['id']} completed.\nTotal: {invoice['total']:.0f} PKR\nReceipt printed.",
-            )
+        status = (
+            f"Printer not responding. Check cable.\nReceipt saved to:\n{fallback_path}"
+            if fallback_path else "Receipt printed."
+        )
+        self.show_receipt_preview(shop_name, invoice, status)
 
         self.cart = []
         self.render_cart()
         self.scan_input.setFocus()
+
+    def show_receipt_preview(self, shop_name, invoice, status_line):
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f"Invoice {invoice['id']}")
+
+        layout = QVBoxLayout(dialog)
+        text = QTextEdit()
+        text.setReadOnly(True)
+        text.setFont(QFont("Courier New", 10))
+        text.setPlainText(format_receipt_text(shop_name, invoice))
+        layout.addWidget(text)
+
+        status_label = QLabel(status_line)
+        layout.addWidget(status_label)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
+        buttons.accepted.connect(dialog.accept)
+        layout.addWidget(buttons)
+
+        dialog.resize(380, 500)
+        dialog.exec()

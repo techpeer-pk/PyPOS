@@ -21,7 +21,7 @@ class PrinterError(Exception):
     pass
 
 
-def _format_receipt_text(shop_name, invoice):
+def format_receipt_text(shop_name, invoice):
     lines = [
         "=" * RECEIPT_WIDTH,
         (shop_name or "STATIONARY SHOP").center(RECEIPT_WIDTH),
@@ -88,7 +88,7 @@ def _save_to_file(name, text):
 
 def print_receipt(shop_name, invoice, port):
     """Returns None on successful print, or a file path if it fell back to saving."""
-    text = _format_receipt_text(shop_name, invoice)
+    text = format_receipt_text(shop_name, invoice)
     try:
         _write_to_port(port, text)
         return None
