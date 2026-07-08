@@ -21,12 +21,19 @@ class PrinterError(Exception):
     pass
 
 
-def format_receipt_text(shop_name, invoice):
+DEVELOPER_FOOTER = "Developed By: TechPeer +92 309 0404 293"
+
+
+def format_receipt_text(shop_name, invoice, phone=""):
     lines = [
         "=" * RECEIPT_WIDTH,
         (shop_name or "STATIONARY SHOP").center(RECEIPT_WIDTH),
         "Receipt".center(RECEIPT_WIDTH),
         "=" * RECEIPT_WIDTH,
+    ]
+    if phone:
+        lines.append(f"Phone: {phone}".center(RECEIPT_WIDTH))
+    lines += [
         f"Date: {invoice['date']}",
         f"Invoice: {invoice['id']}",
         "",
@@ -45,6 +52,7 @@ def format_receipt_text(shop_name, invoice):
         "",
         "Thank you! Come again.".center(RECEIPT_WIDTH),
         "=" * RECEIPT_WIDTH,
+        DEVELOPER_FOOTER.center(RECEIPT_WIDTH),
     ]
     return "\n".join(lines) + "\n"
 
@@ -87,9 +95,9 @@ def _save_to_file(name, text):
     return path
 
 
-def print_receipt(shop_name, invoice, port):
+def print_receipt(shop_name, invoice, port, phone=""):
     """Returns None on successful print, or a file path if it fell back to saving."""
-    text = format_receipt_text(shop_name, invoice)
+    text = format_receipt_text(shop_name, invoice, phone)
     try:
         _write_to_port(port, text)
         return None

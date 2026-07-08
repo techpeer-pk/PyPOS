@@ -228,20 +228,21 @@ class SalesScreen(QWidget):
         self.invoice_label.setText(f"Invoice #: {invoice['id']}")
 
         shop_name = get_setting("shop_name")
+        phone = get_setting("phone")
         port = get_setting("printer_port", "COM4")
-        fallback_path = print_receipt(shop_name, invoice, port)
+        fallback_path = print_receipt(shop_name, invoice, port, phone)
 
         status = (
             f"Printer not responding. Check cable.\nReceipt saved to:\n{fallback_path}"
             if fallback_path else "Receipt printed."
         )
-        self.show_receipt_preview(shop_name, invoice, status)
+        self.show_receipt_preview(shop_name, invoice, status, phone)
 
         self.cart = []
         self.render_cart()
         self.scan_input.setFocus()
 
-    def show_receipt_preview(self, shop_name, invoice, status_line):
+    def show_receipt_preview(self, shop_name, invoice, status_line, phone=""):
         dialog = QDialog(self)
         dialog.setWindowTitle(f"Invoice {invoice['id']}")
 
@@ -249,7 +250,7 @@ class SalesScreen(QWidget):
         text = QTextEdit()
         text.setReadOnly(True)
         text.setFont(QFont("Courier New", 10))
-        text.setPlainText(format_receipt_text(shop_name, invoice))
+        text.setPlainText(format_receipt_text(shop_name, invoice, phone))
         layout.addWidget(text)
 
         status_label = QLabel(status_line)

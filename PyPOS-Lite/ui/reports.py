@@ -104,6 +104,7 @@ class ReportsScreen(QWidget):
             return
 
         shop_name = get_setting("shop_name")
+        phone = get_setting("phone")
 
         dialog = QDialog(self)
         dialog.setWindowTitle(f"Invoice {invoice['id']}")
@@ -112,12 +113,12 @@ class ReportsScreen(QWidget):
         text = QTextEdit()
         text.setReadOnly(True)
         text.setFont(QFont("Courier New", 10))
-        text.setPlainText(format_receipt_text(shop_name, invoice))
+        text.setPlainText(format_receipt_text(shop_name, invoice, phone))
         layout.addWidget(text)
 
         button_row = QHBoxLayout()
         reprint_btn = QPushButton("Re-print")
-        reprint_btn.clicked.connect(lambda: self.reprint_invoice(invoice, shop_name))
+        reprint_btn.clicked.connect(lambda: self.reprint_invoice(invoice, shop_name, phone))
         button_row.addWidget(reprint_btn)
         layout.addLayout(button_row)
 
@@ -128,9 +129,9 @@ class ReportsScreen(QWidget):
         dialog.resize(380, 500)
         dialog.exec()
 
-    def reprint_invoice(self, invoice, shop_name):
+    def reprint_invoice(self, invoice, shop_name, phone=""):
         port = get_setting("printer_port", "COM4")
-        fallback_path = print_receipt(shop_name, invoice, port)
+        fallback_path = print_receipt(shop_name, invoice, port, phone)
         if fallback_path:
             QMessageBox.information(
                 self, "Printer not responding",
