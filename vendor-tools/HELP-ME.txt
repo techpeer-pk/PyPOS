@@ -9,9 +9,11 @@ PHASE 4: BUILD THE .EXE
 From the PyPOS-Lite folder:
 
     pip install pyinstaller
-    pyinstaller --onefile --windowed main.py
+    pyinstaller --onefile --windowed --name PyPOS-Lite --icon=assets\icon.ico --add-data "assets;assets" main.py
 
 Output: dist\PyPOS-Lite.exe
+(--icon sets the .exe file's own icon; --add-data bundles assets\
+so the in-app window icon also resolves correctly when frozen.)
 
 Test it on a clean Windows machine (no Python installed) before
 delivery - confirm the Activation screen appears and a real

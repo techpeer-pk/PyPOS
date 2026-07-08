@@ -75,7 +75,7 @@ Agar client ka `data.db` corrupt/delete ho jaye, ya app ko naye folder mein inst
 2. Naya build banayein:
    ```
    cd K:\PyPOS\PyPOS-Lite
-   python -m PyInstaller --onefile --windowed --name PyPOS-Lite main.py
+   python -m PyInstaller --onefile --windowed --name PyPOS-Lite --icon=assets\icon.ico --add-data "assets;assets" main.py
    ```
 3. `dist\PyPOS-Lite.exe` client ko bhej dein (WhatsApp/USB/email)
 4. Client sirf **purane `.exe` ko naye se replace kare**, `data.db` ko haath na lagayein
@@ -122,7 +122,7 @@ Do backups already bana chuke hain:
 ```
 # Naya EXE build karna
 cd K:\PyPOS\PyPOS-Lite
-python -m PyInstaller --onefile --windowed --name PyPOS-Lite main.py
+python -m PyInstaller --onefile --windowed --name PyPOS-Lite --icon=assets\icon.ico --add-data "assets;assets" main.py
 
 # Naye client ke liye License Key generate karna
 cd K:\PyPOS\vendor-tools
