@@ -53,6 +53,12 @@ App check karta hai: "Ye License Key, is Machine ID ke liye, meri (public) key s
 5. Output mein "License Key" milegi — wahi unhe wapas bhej dein
 6. Wo License Key Activation screen mein paste kar ke "Activate" dabate hain → App khul jata hai (Dashboard)
 
+**Note:** Agar aap kisi **doosre laptop** pe (alag Windows username ke sath) `keygen.py` chala rahe hain, hardcoded default path (`C:\Users\TechPeer\...`) us laptop pe nahi milega. Us waqt path batayein:
+```
+python keygen.py <MACHINE-ID> --key "D:\jahan-bhi-restore-ki\private_key.pem"
+```
+Ya ek dafa environment variable set kar dein (`PYPOS_VENDOR_KEY`), phir har baar `--key` likhne ki zaroorat nahi.
+
 **Bas itna hi.** Ek baar activate hone ke baad, us PC pe dobara kabhi activation screen nahi aayegi (jab tak wo `data.db` delete na karein).
 
 ---
