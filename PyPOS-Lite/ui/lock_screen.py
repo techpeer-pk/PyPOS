@@ -1,5 +1,10 @@
+import os
+
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmap
+
+from config import ASSETS_DIR
 
 
 class LockScreen(QWidget):
@@ -10,9 +15,11 @@ class LockScreen(QWidget):
         layout = QVBoxLayout(self)
         layout.addStretch()
 
-        icon = QLabel("🔒")
+        icon = QLabel()
+        icon.setPixmap(QPixmap(os.path.join(ASSETS_DIR, "lock-large.png")).scaled(
+            72, 72, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
+        ))
         icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        icon.setStyleSheet("font-size: 64px;")
         layout.addWidget(icon)
 
         title = QLabel("POS LOCKED")

@@ -1,8 +1,12 @@
+import os
+
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QGroupBox, QListWidget
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtGui import QIcon
 
+from config import ASSETS_DIR
 from models import Product, Invoice
 
 
@@ -16,11 +20,15 @@ class DashboardScreen(QWidget):
         header_row = QHBoxLayout()
         title = QLabel("PyPOS-LITE DASHBOARD")
         title.setStyleSheet("font-size: 20px; font-weight: bold; padding: 10px;")
-        lock_btn = QPushButton("🔒")
+        lock_btn = QPushButton()
+        lock_btn.setIcon(QIcon(os.path.join(ASSETS_DIR, "lock.png")))
+        lock_btn.setIconSize(QSize(18, 18))
         lock_btn.setFixedWidth(36)
         lock_btn.setToolTip("Lock POS")
         lock_btn.clicked.connect(main_window.show_lock_screen)
-        settings_btn = QPushButton("⚙")
+        settings_btn = QPushButton()
+        settings_btn.setIcon(QIcon(os.path.join(ASSETS_DIR, "settings.png")))
+        settings_btn.setIconSize(QSize(18, 18))
         settings_btn.setFixedWidth(36)
         settings_btn.setToolTip("Settings")
         settings_btn.clicked.connect(main_window.show_settings)

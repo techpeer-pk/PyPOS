@@ -2,8 +2,9 @@ import sys
 import traceback
 
 from PyQt6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QMessageBox, QDialog
+from PyQt6.QtGui import QIcon
 
-from config import APP_NAME
+from config import APP_NAME, ICON_PATH
 from database import init_db
 from ui.dashboard import DashboardScreen
 from ui.sales import SalesScreen
@@ -13,6 +14,7 @@ from ui.settings import SettingsScreen, get_setting
 from ui.pin_lock import PinLockDialog
 from ui.lock_screen import LockScreen
 from ui.activation import ActivationDialog
+from ui.theme import STYLESHEET, apply_button_shadows
 from services.backup import backup_now
 from services.license import is_activated
 
@@ -36,6 +38,7 @@ class MainWindow(QMainWindow):
         for screen in (self.dashboard, self.sales, self.inventory, self.reports, self.settings, self.lock_screen):
             self.stack.addWidget(screen)
 
+        apply_button_shadows(self)
         self.show_dashboard()
 
     def show_dashboard(self):
@@ -88,6 +91,8 @@ def main():
     sys.excepthook = handle_uncaught_exception
     init_db()
     app = QApplication(sys.argv)
+    app.setStyleSheet(STYLESHEET)
+    app.setWindowIcon(QIcon(ICON_PATH))
 
     if not is_activated():
         dialog = ActivationDialog()
