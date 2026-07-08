@@ -5,6 +5,9 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 
 from models import Product, Invoice, StockError
+from services.scanner import normalize_code
+from services.printer import print_receipt
+from ui.settings import get_setting
 
 
 class SalesScreen(QWidget):
@@ -75,7 +78,7 @@ class SalesScreen(QWidget):
         self.scan_input.setFocus()
 
     def scan_item(self):
-        sku = self.scan_input.text().strip()
+        sku = normalize_code(self.scan_input.text())
         self.scan_input.clear()
         if not sku:
             return
@@ -165,10 +168,23 @@ class SalesScreen(QWidget):
             return
 
         self.invoice_label.setText(f"Invoice #: {invoice['id']}")
-        QMessageBox.information(
-            self, "Sale Complete",
-            f"Invoice {invoice['id']} completed.\nTotal: {invoice['total']:.0f} PKR",
-        )
+
+        shop_name = get_setting("shop_name")
+        port = get_setting("printer_port", "COM4")
+        fallback_path = print_receipt(shop_name, invoice, port)
+
+        if fallback_path:
+            QMessageBox.information(
+                self, "Sale Complete",
+                f"Invoice {invoice['id']} completed.\nTotal: {invoice['total']:.0f} PKR\n\n"
+                f"Printer not responding. Check cable.\nReceipt saved to:\n{fallback_path}",
+            )
+        else:
+            QMessageBox.information(
+                self, "Sale Complete",
+                f"Invoice {invoice['id']} completed.\nTotal: {invoice['total']:.0f} PKR\nReceipt printed.",
+            )
+
         self.cart = []
         self.render_cart()
         self.scan_input.setFocus()

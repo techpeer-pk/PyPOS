@@ -5,6 +5,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QDate
 
 from models import Invoice
+from services.printer import print_report as send_report_to_printer
+from ui.settings import get_setting
 
 
 class ReportsScreen(QWidget):
@@ -74,7 +76,16 @@ class ReportsScreen(QWidget):
         )
 
     def print_report(self):
-        QMessageBox.information(
-            self, "Printing",
-            "Report printing will be available once the receipt printer is connected (Phase 3).",
-        )
+        date_str = self.date_edit.date().toString("yyyy-MM-dd")
+        invoices = Invoice.get_by_date(date_str)
+        shop_name = get_setting("shop_name")
+        port = get_setting("printer_port", "COM4")
+        fallback_path = send_report_to_printer(shop_name, date_str, invoices, port)
+
+        if fallback_path:
+            QMessageBox.information(
+                self, "Printer not responding",
+                f"Check cable. Report saved to:\n{fallback_path}",
+            )
+        else:
+            QMessageBox.information(self, "Printed", "Report sent to printer.")

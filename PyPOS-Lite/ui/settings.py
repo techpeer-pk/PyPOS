@@ -1,12 +1,15 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit,
-    QComboBox, QGroupBox, QFormLayout, QMessageBox, QFileDialog
+    QComboBox, QGroupBox, QFormLayout, QMessageBox, QFileDialog, QDialog
 )
 from PyQt6.QtCore import Qt
 
 from database import get_connection
 from config import BACKUP_DIR
+from models import Product
 from services.backup import backup_now, restore, get_last_backup_time
+from services.printer import test_print as send_test_print, PrinterError
+from services.scanner import normalize_code
 
 
 def get_setting(key, default=""):
@@ -122,10 +125,36 @@ class SettingsScreen(QWidget):
         QMessageBox.information(self, "Saved", "Settings saved.")
 
     def test_print(self):
-        QMessageBox.information(self, "Test Print", "Printer integration will be connected in Phase 3.")
+        port = self.printer_combo.currentText()
+        try:
+            send_test_print(port)
+            QMessageBox.information(self, "Test Print", f"Test receipt sent to {port}.")
+        except PrinterError as e:
+            QMessageBox.warning(self, "Printer not responding", f"Check cable and port.\n\n{e}")
 
     def test_scan(self):
-        QMessageBox.information(self, "Test Scan", "Scanner integration will be connected in Phase 3.")
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Test Scan")
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(QLabel("Scan a barcode (or type SKU) and press Enter:"))
+        scan_input = QLineEdit()
+        result_label = QLabel("")
+        layout.addWidget(scan_input)
+        layout.addWidget(result_label)
+
+        def on_scan():
+            code = normalize_code(scan_input.text())
+            scan_input.clear()
+            if not code:
+                return
+            product = Product.get_by_sku(code)
+            if product:
+                result_label.setText(f"✅ Found: {product['name']} ({code})")
+            else:
+                result_label.setText(f"⚠ No product found for: {code}")
+
+        scan_input.returnPressed.connect(on_scan)
+        dialog.exec()
 
     def do_backup(self):
         path = backup_now()

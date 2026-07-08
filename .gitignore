@@ -2,6 +2,7 @@ __pycache__/
 *.pyc
 *.db
 backups/
+receipts/
 build/
 dist/
 *.spec
