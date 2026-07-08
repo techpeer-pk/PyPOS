@@ -4,34 +4,12 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 
-from database import get_connection
 from config import BACKUP_DIR
+from database import get_setting, set_setting
 from models import Product
 from services.backup import backup_now, restore, get_last_backup_time
 from services.printer import test_print as send_test_print, PrinterError
 from services.scanner import normalize_code
-
-
-def get_setting(key, default=""):
-    conn = get_connection()
-    try:
-        row = conn.execute("SELECT value FROM settings WHERE key = ?", (key,)).fetchone()
-        return row["value"] if row else default
-    finally:
-        conn.close()
-
-
-def set_setting(key, value):
-    conn = get_connection()
-    try:
-        conn.execute(
-            "INSERT INTO settings (key, value) VALUES (?, ?) "
-            "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
-            (key, value),
-        )
-        conn.commit()
-    finally:
-        conn.close()
 
 
 class SettingsScreen(QWidget):

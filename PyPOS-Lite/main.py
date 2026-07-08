@@ -1,7 +1,7 @@
 import sys
 import traceback
 
-from PyQt6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QMessageBox
+from PyQt6.QtWidgets import QApplication, QMainWindow, QStackedWidget, QMessageBox, QDialog
 
 from config import APP_NAME
 from database import init_db
@@ -12,7 +12,9 @@ from ui.reports import ReportsScreen
 from ui.settings import SettingsScreen, get_setting
 from ui.pin_lock import PinLockDialog
 from ui.lock_screen import LockScreen
+from ui.activation import ActivationDialog
 from services.backup import backup_now
+from services.license import is_activated
 
 
 class MainWindow(QMainWindow):
@@ -86,6 +88,12 @@ def main():
     sys.excepthook = handle_uncaught_exception
     init_db()
     app = QApplication(sys.argv)
+
+    if not is_activated():
+        dialog = ActivationDialog()
+        if dialog.exec() != QDialog.DialogCode.Accepted or not is_activated():
+            sys.exit(0)
+
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
