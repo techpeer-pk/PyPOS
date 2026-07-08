@@ -1,11 +1,12 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit,
-    QComboBox, QGroupBox, QFormLayout, QMessageBox, QFileDialog, QDialog
+    QComboBox, QGroupBox, QFormLayout, QMessageBox, QFileDialog, QDialog,
+    QDialogButtonBox
 )
 from PyQt6.QtCore import Qt
 
 from config import BACKUP_DIR
-from database import get_setting, set_setting
+from database import get_setting, set_setting, clear_transaction_data, factory_reset
 from models import Product
 from services.backup import backup_now, restore, get_last_backup_time
 from services.printer import test_print as send_test_print, PrinterError
@@ -81,6 +82,31 @@ class SettingsScreen(QWidget):
         pin_form.addRow("Confirm PIN:", self.confirm_pin_input)
         pin_form.addRow(change_pin_btn)
         layout.addWidget(pin_box)
+
+        danger_box = QGroupBox("DANGER ZONE")
+        danger_box.setStyleSheet(
+            "QGroupBox { border: 1px solid #E11D48; } "
+            "QGroupBox::title { color: #E11D48; }"
+        )
+        danger_layout = QVBoxLayout(danger_box)
+        danger_info = QLabel(
+            "Irreversible. Use only when preparing a fresh install for a new shop/client."
+        )
+        danger_info.setWordWrap(True)
+        danger_info.setStyleSheet("color: #6B7280; font-size: 11px;")
+        danger_layout.addWidget(danger_info)
+
+        danger_btn_row = QHBoxLayout()
+        clear_data_btn = QPushButton("Clear Products/Sales")
+        clear_data_btn.setStyleSheet("background-color: #E11D48;")
+        clear_data_btn.clicked.connect(self.do_clear_transaction_data)
+        factory_reset_btn = QPushButton("Factory Reset (Wipe All)")
+        factory_reset_btn.setStyleSheet("background-color: #991B1B;")
+        factory_reset_btn.clicked.connect(self.do_factory_reset)
+        danger_btn_row.addWidget(clear_data_btn)
+        danger_btn_row.addWidget(factory_reset_btn)
+        danger_layout.addLayout(danger_btn_row)
+        layout.addWidget(danger_box)
 
         bottom_row = QHBoxLayout()
         save_btn = QPushButton("Save")
@@ -181,3 +207,59 @@ class SettingsScreen(QWidget):
             return
         restore(path)
         QMessageBox.information(self, "Restore Complete", "Database restored. Please restart the app.")
+
+    def _confirm_by_typing(self, title, message, confirm_word):
+        dialog = QDialog(self)
+        dialog.setWindowTitle(title)
+        dialog.setFixedWidth(380)
+        layout = QVBoxLayout(dialog)
+
+        warn_label = QLabel(message)
+        warn_label.setWordWrap(True)
+        layout.addWidget(warn_label)
+
+        layout.addWidget(QLabel(f'Type "{confirm_word}" to confirm:'))
+        confirm_input = QLineEdit()
+        layout.addWidget(confirm_input)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        ok_btn = buttons.button(QDialogButtonBox.StandardButton.Ok)
+        ok_btn.setText("Confirm")
+        ok_btn.setEnabled(False)
+        confirm_input.textChanged.connect(
+            lambda text: ok_btn.setEnabled(text.strip().upper() == confirm_word.upper())
+        )
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+
+        return dialog.exec() == QDialog.DialogCode.Accepted
+
+    def do_clear_transaction_data(self):
+        confirmed = self._confirm_by_typing(
+            "Clear Products & Sales",
+            "This permanently deletes ALL products, invoices, and sale history.\n"
+            "Shop info, printer/scanner settings, admin PIN, and license are kept.\n"
+            "This cannot be undone.",
+            "CLEAR",
+        )
+        if not confirmed:
+            return
+        clear_transaction_data()
+        QMessageBox.information(self, "Cleared", "All products and sales data have been cleared.")
+
+    def do_factory_reset(self):
+        confirmed = self._confirm_by_typing(
+            "Factory Reset",
+            "This permanently wipes EVERYTHING: products, invoices, shop info,\n"
+            "printer settings, admin PIN, and license activation.\n"
+            "The app will need to be re-activated. This cannot be undone.",
+            "RESET",
+        )
+        if not confirmed:
+            return
+        factory_reset()
+        QMessageBox.information(
+            self, "Factory Reset Complete",
+            "All data has been wiped. Please restart the app to re-activate.",
+        )

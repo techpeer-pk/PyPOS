@@ -20,6 +20,29 @@ delivery - confirm the Activation screen appears and a real
 license key from keygen.py works end to end.
 
 
+MULTIPLE CLIENTS / VENDORS - DO NOT REBUILD EACH TIME
+---------------------------------------------------------
+The SAME dist\PyPOS-Lite.exe works for every client. You do NOT
+need a fresh build per client - only a fresh License Key (Phase
+4 activation workflow above) and a fresh data.db.
+
+IMPORTANT: When copying to a new client, copy ONLY PyPOS-Lite.exe.
+Do NOT copy your own data.db - if you do, the client inherits
+whatever test products/sales are in it. A fresh empty data.db is
+created automatically the first time the exe runs in a new folder.
+
+If you already added test data while demoing/training on the
+client's own PC (or on your dev machine before copying), use the
+DANGER ZONE in Settings (PIN protected) instead of hunting for the
+file manually:
+  - "Clear Products/Sales" - wipes products + invoices only, keeps
+    shop info, printer settings, PIN, and license intact
+  - "Factory Reset (Wipe All)" - wipes everything including
+    settings/PIN/license - app will ask to re-activate afterward
+    (same Machine ID = same License Key still works, no need to
+    contact yourself for a new one)
+
+
 PHASE 5: DELIVERY PACKAGE CHECKLIST
 --------------------------------------
 Per the original plan (PyPOS-LITE-35K-PLAN.md), each USB stick

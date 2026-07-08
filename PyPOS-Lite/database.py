@@ -73,3 +73,28 @@ def set_setting(key, value):
         conn.commit()
     finally:
         conn.close()
+
+
+def clear_transaction_data():
+    """Wipe products/invoices/sales, but keep shop info, PIN, and license."""
+    conn = get_connection()
+    try:
+        conn.execute("DELETE FROM invoice_items")
+        conn.execute("DELETE FROM invoices")
+        conn.execute("DELETE FROM products")
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def factory_reset():
+    """Wipe everything, including settings/PIN/license. Requires re-activation."""
+    conn = get_connection()
+    try:
+        conn.execute("DELETE FROM invoice_items")
+        conn.execute("DELETE FROM invoices")
+        conn.execute("DELETE FROM products")
+        conn.execute("DELETE FROM settings")
+        conn.commit()
+    finally:
+        conn.close()
