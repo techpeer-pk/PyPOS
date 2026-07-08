@@ -1,0 +1,87 @@
+================================================================
+ PyPOS-Lite - Developer/Vendor Operations Notes (Internal Only)
+================================================================
+Do NOT share this file or this folder with installers or clients.
+
+
+PHASE 4: BUILD THE .EXE
+-------------------------
+From the PyPOS-Lite folder:
+
+    pip install pyinstaller
+    pyinstaller --onefile --windowed main.py
+
+Output: dist\PyPOS-Lite.exe
+
+Test it on a clean Windows machine (no Python installed) before
+delivery - confirm the Activation screen appears and a real
+license key from keygen.py works end to end.
+
+
+PHASE 5: DELIVERY PACKAGE CHECKLIST
+--------------------------------------
+Per the original plan (PyPOS-LITE-35K-PLAN.md), each USB stick
+handed to a client should contain:
+
+  [ ] PyPOS-Lite.exe (from dist\, freshly built)
+  [ ] HELP-VENDOR.txt (rename to "Quick Start.txt" if preferred)
+  [ ] Empty backups\ folder (auto-created on first run anyway)
+
+Before handing over, confirm:
+  [ ] App starts without errors on the target PC
+  [ ] Activation completes with a real key (see below)
+  [ ] Can add 5 test products
+  [ ] Barcode scanner works (if available on-site)
+  [ ] Can complete a sale and print/save a receipt
+  [ ] Stock updates after sale
+  [ ] App closes cleanly
+  [ ] Shopkeeper trained (2 hrs) and can do a sale independently
+
+
+PER-CLIENT ACTIVATION WORKFLOW
+---------------------------------
+1. Installer (or client) sends you their Machine ID, e.g.
+   7B93-8325-D104-5DE9 (shown on the Activation screen).
+2. Run:
+       python vendor-tools\keygen.py <MACHINE-ID>
+3. Send back the printed "License Key" to them.
+4. They paste it into the Activation screen and click Activate.
+
+Each Machine ID needs its own key - keys are not transferable
+between PCs. If a client's PC changes (upgrade/reformat), repeat
+this process for their new Machine ID.
+
+
+PRIVATE KEY - DO NOT LOSE
+----------------------------
+Location: C:\Users\TechPeer\PyPOS-Vendor-Keys\private_key.pem
+
+This is the ONLY thing that can generate valid license keys. If
+lost, all future keygen.py runs stop working (existing already-
+activated clients are unaffected - only new activations/PC
+transfers break).
+
+Backups already in place:
+  - Manual copy (password manager / encrypted USB) - done
+  - Paper backup with QR code + SHA-256 checksum - done
+    (see PRINT-ME-private_key_backup.html, printed and stored)
+
+If you ever need to restore from the paper backup: scan the QR
+code, save the decoded text as private_key.pem, and verify its
+SHA-256 checksum matches the one printed on the page before using
+it with keygen.py.
+
+
+KEY FILES REFERENCE
+----------------------
+- PyPOS-Lite/services/license.py   - public key + verification logic (safe to ship)
+- PyPOS-Lite/ui/activation.py      - activation screen shown to the client
+- vendor-tools/keygen.py            - generates license keys (safe to keep in repo, no secret inside)
+- vendor-tools/HELP-ME.txt          - this file (internal only)
+
+If the public key in services/license.py is ever rotated (e.g.
+after generating a fresh keypair), all previously-shipped .exe
+files keep using their OLD embedded public key - only NEW builds
+use the new one. Existing clients are unaffected unless you also
+rebuild and redeliver to them.
+================================================================

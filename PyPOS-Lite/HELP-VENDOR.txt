@@ -1,0 +1,74 @@
+================================================================
+ PyPOS-Lite - Installation & Activation Guide (For Installer)
+================================================================
+
+This guide is for whoever installs PyPOS-Lite on the shopkeeper's
+PC (computer dealer / technician). No technical/programming
+knowledge needed - just follow these steps.
+
+
+1. INSTALL
+-----------
+- Copy the whole PyPOS-Lite folder (contains PyPOS-Lite.exe and a
+  Data folder) onto the shop's PC. Anywhere is fine - Desktop or
+  a folder like C:\PyPOS-Lite.
+- Double-click PyPOS-Lite.exe to run it. No installer, no setup
+  wizard needed.
+
+
+2. ACTIVATION (first run only)
+-------------------------------
+The app will not open on a new PC until it is activated. This is
+intentional - it stops the software from being copied and resold.
+
+On first run you'll see an "ACTIVATION REQUIRED" screen showing a
+MACHINE ID, e.g.:
+
+    7B93-8325-D104-5DE9
+
+Steps:
+  a) Send this Machine ID to the developer (contact below).
+  b) The developer will reply with a LICENSE KEY.
+  c) Paste that License Key into the box on the Activation screen
+     and click "Activate".
+  d) The app opens to the Dashboard - you're done.
+
+IMPORTANT: The License Key only works on the exact PC it was
+issued for. If you install on a different PC, you must repeat
+this process for a NEW Machine ID.
+
+
+3. HARDWARE SETUP
+------------------
+- Barcode Scanner: plug into any USB port. It types like a
+  keyboard - no drivers needed. Test it from
+  Settings > Scanner > "Test Scan".
+- Receipt Printer (thermal, ESC/POS): connect via USB/serial,
+  note which COM port Windows assigns it (Device Manager > Ports),
+  then select that port in Settings > Printer, and click
+  "Test Print" to confirm.
+
+
+4. BASIC TROUBLESHOOTING
+-------------------------
+- App won't open at all: check the PyPOS-Lite folder wasn't
+  moved/renamed after activation; re-copy the whole folder fresh
+  if unsure.
+- "Invalid license key for this PC": the Machine ID must be
+  re-sent and a new key requested - keys are not transferable
+  between machines.
+- Printer not responding: check cable/COM port in Settings.
+- Forgotten Admin PIN (for Inventory/Settings access): contact
+  the developer - it's stored in the shop's database, not
+  recoverable by the installer.
+
+
+5. SUPPORT / CONTACT
+----------------------
+Developer contact: techpeer.pk@gmail.com
+(Add WhatsApp number here if you want it included.)
+
+Do not attempt to copy the .exe to additional PCs without going
+through the activation process above for each one - unlicensed
+copies will not run.
+================================================================
